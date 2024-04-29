@@ -87,7 +87,7 @@ Order by track.milliseconds DESC;
 
 /* Question Set 3 - Advance */
 
-/* Q1: Find how much amount spent by each customer on artists? Write a query to return customer name, artist name and total spent */
+/* Q1: Find how much amount spent by each customer on best selling artist? Write a query to return customer name, artist name and total spent */
 
 WITH best_selling_artist AS (
 	SELECT artist.artist_id AS artist_id, artist.name AS artist_name, SUM(invoice_line.unit_price*invoice_line.quantity) AS total_sales
@@ -108,4 +108,37 @@ JOIN album2 alb ON alb.album_id = t.album_id
 JOIN best_selling_artist bsa ON bsa.artist_id = alb.artist_id
 GROUP BY 1,2,3,4
 ORDER BY 5 DESC;
+
+/* Q2: We want to find out the most popular music Genre for each country. We determine the most popular genre as the genre 
+with the highest amount of purchases. Write a query that returns each country along with the top Genre. For countries where 
+the maximum number of purchases is shared return all Genres. */
+
+WITH Popular_Genre as (
+SELECT count(invoice_line.invoice_id) as Purchase_Qty, customer.country, genre.name, genre.genre_id,
+ROW_Number () OVER (Partition by customer.country order by count(invoice_line.invoice_id) desc) as Row_no
+FROM invoice I
+JOIN customer on customer.customer_id = I.customer_id
+JOIN invoice_line on I.invoice_id = invoice_line.invoice_id
+JOIN track on invoice_line.track_id = track.track_id
+JOIN genre on genre.genre_id = track.genre_id
+GROUP BY 2,3,4
+order by 2 asc, 1 desc
+)
+SELECT * FROM Popular_Genre WHERE Row_no <=1;
+
+/* Q3: Write a query that determines the customer that has spent the most on music for each country. 
+Write a query that returns the country along with the top customer and how much they spent. 
+For countries where the top amount spent is shared, provide all customers who spent this amount. */
+
+WITH Customer_by_Country as 
+(
+SELECT c.customer_id, c.first_name, c.last_name, i.billing_country, SUM(i.total) AS total_spending,
+ROW_Number () OVER (partition by i.billing_country order by SUM(i.total) desc) as Row_no
+FROM customer c
+JOIN invoice i on c.customer_id = i.customer_id
+GROUP BY 1,2,3,4
+order by 4 asc, 5 desc
+)
+SELECT * from Customer_by_Country where Row_no <= 1
+
 
