@@ -1,19 +1,22 @@
 USE music_library;
 
 #who is the senior most employee based on job title?
-Select *
+
+Select employee_id, last_name, first_name, title, levels
 from employee
 Order by levels desc
 Limit 1;
 
 #Which countries have the most invoices?
-Select count(*) as i, billing_country
+
+Select count(*) as Count_of_invoices, billing_country
 from invoice
 group by billing_country
-order by i desc;
+order by Count_of_invoices desc;
 
 #What are top 3 values of total invoice
-Select *
+
+Select invoice_id,customer_id,total
 from invoice
 order by total desc
 limit 3;
@@ -22,20 +25,22 @@ limit 3;
 # Write a query that returns one city that has the highest sum of invoice totals. 
 # Return both the city name & sum of all invoice totals
 
-Select billing_city, sum(total) as s
+Select billing_city, sum(total) as invoice_total
 from invoice
 group by billing_city
-Order by s desc;
+Order by invoice_total desc
+LIMIT 1;
 
 /* Q5: Who is the best customer? The customer who has spent the most money will be declared the best customer. 
 Write a query that returns the person who has spent the most money.*/
 
-select customer.customer_id, customer.first_name, Customer.last_name, sum(invoice.total) as total
+select customer.customer_id, customer.first_name, Customer.last_name, 
+sum(invoice.total) as total_spending
 from customer
 join invoice
 on customer.customer_id = invoice.customer_id
 group by customer.customer_id, customer.first_name, Customer.last_name
-order by total desc
+order by total_spending desc
 Limit 1;
 
 /* Question Set 2 - Moderate */
@@ -43,7 +48,8 @@ Limit 1;
 /* Q1: Write query to return the email, first name, last name, & Genre of all Rock Music listeners. 
 Return your list ordered alphabetically by email starting with A. */
 
-SELECT DISTINCT email AS Email,first_name AS FirstName, last_name AS LastName, genre.name AS Name
+SELECT DISTINCT email AS Email,first_name AS FirstName, 
+last_name AS LastName, genre.name AS Name
 from customer
 JOIN invoice on customer.customer_id = invoice.customer_id
 JOIN invoice_line on invoice.invoice_id = invoice_line.invoice_id
@@ -97,8 +103,7 @@ WITH best_selling_artist AS (
 	JOIN artist ON artist.artist_id = album2.artist_id
 	GROUP BY 1, 2
 	ORDER BY 3 DESC
-	LIMIT 1
-)
+	LIMIT 1)
 SELECT c.customer_id, c.first_name, c.last_name, bsa.artist_name, SUM(il.unit_price*il.quantity) AS amount_spent
 FROM invoice i
 JOIN customer c ON c.customer_id = i.customer_id
